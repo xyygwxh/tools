@@ -51,10 +51,11 @@ def main():
         st.info("请上传照片")
     if st.button("提取照片"):
         for photo in employee_photos:
-            if photo.name[:18] in employee_ids:
+            id = photo.name[:18]
+            if id in employee_ids:
                 num += 1
                 photos_to_download.append(photo)
-                employee_ids.remove(photo.name[:18])
+                employee_ids.remove(id)
 
         st.success(f"照片提取完毕，需提取照片数：{total_num} ，已提取照片数：{num}")
         if len(employee_ids) != 0:
