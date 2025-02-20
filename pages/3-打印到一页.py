@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import openpyxl
 import io
+import math
 
 
 def set_cell_border(ws, cell_range):
@@ -15,6 +16,7 @@ def set_cell_border(ws, cell_range):
         for cell in row:
             if cell.value != "":
                 cell.border = thin_border
+                cell.alignment = openpyxl.styles.Alignment(horizontal='center', vertical='center')
 
 
 def set_column_width(ws, column_letter, max_length):
@@ -36,7 +38,11 @@ def main():
         column_name = st.selectbox(
             "选择分页字段", column_names
         )
-        n = st.number_input("每页数据行数", min_value=30, max_value=50, value=40)
+        way = st.selectbox(
+            "版式", ["左侧优先", "平均分布"]
+        )
+        if way == "左侧优先":
+            n = st.number_input("每页数据行数", min_value=30, max_value=50, value=40)
       
         # 获取列值
         column_values = df[column_name].unique()
@@ -47,6 +53,8 @@ def main():
             progress_bar = st.progress(0)
             for idx, value in enumerate(column_values):
                 temp_df = df[df[column_name] == value]
+                if way == "平均分布":
+                    n = math.ceil(len(temp_df)/2)
                 for i in range(n):
                     try:
                         x = temp_df.iloc[i].tolist()
@@ -71,8 +79,6 @@ def main():
                 new_df.to_excel(writer, sheet_name='Sheet1', index=False)
                 ws = writer.sheets['Sheet1']
 
-
-
                 # 为有值单元格设置边框
                 set_cell_border(ws, f'A1:{openpyxl.utils.get_column_letter(ws.max_column)}{ws.max_row}')
                 # 将列宽设置为自动适应
@@ -86,6 +92,11 @@ def main():
                         except TypeError:
                             pass                
                     set_column_width(ws, column_letter, max_length)
+
+                ws.print_title_rows = '1:1'
+
+
+
                 new_file.seek(0)
             
             # 下载文件
